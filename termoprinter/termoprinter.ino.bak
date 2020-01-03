@@ -1,0 +1,163 @@
+#define DI 5
+#define CLK 4
+#define LATCH 7
+#define STB1 8
+#define STB2 9
+#define STEP 3
+#define DIR 2
+#define TEMP 3000
+#define NUM_CHAR_IN_LINE 21
+//#define DEBUG
+#include "glcdfont.c"
+char liter[45] =  "Hello, world! A'm is your god.."; 
+void newLine()
+{
+  for (int i = 0; i < 5; i++) {
+    digitalWrite(STEP, HIGH);
+    delay(1);
+    digitalWrite(STEP, LOW);
+    delay(1);
+  }
+}
+void printLine(uint8_t data[16])
+{
+  digitalWrite(LATCH, HIGH);
+#ifdef   DEBUG
+  Serial.println();
+#endif
+  for (int i = 0; i < 128; i++) {
+
+    if ((data[i >> 3] & (1 << (i & 7))))
+    {
+#ifdef   DEBUG
+      Serial.print(8);
+#endif
+      digitalWrite(DI, HIGH);
+    }
+    else
+    {
+#ifdef   DEBUG
+      Serial.print(" ");
+#endif
+      digitalWrite(DI, LOW);
+    }
+    digitalWrite(CLK, HIGH);
+    //delay(1);
+    digitalWrite(CLK, LOW);
+    //delay(1);
+  }
+
+  digitalWrite(LATCH, LOW);
+  //delay(1);
+  digitalWrite(STB1, LOW);
+  delayMicroseconds(TEMP);
+  digitalWrite(STB1, HIGH);
+  //delay(1);
+  digitalWrite(STB2, LOW);
+  delayMicroseconds(TEMP);
+  digitalWrite(STB2, HIGH);
+  //delay(1);
+  for (int i = 0; i < 5; i++) {
+    digitalWrite(STEP, HIGH);
+    delay(1);
+    digitalWrite(STEP, LOW);
+    delay(1);
+  }
+}
+void printChars(char *dat, uint8_t len)
+{
+  uint8_t dotArrey[16];
+  uint8_t count = 0;
+  char line [20];
+
+  while (count < len)
+  {
+    for (int i = 0; i < 20; i++)
+    {
+      line[i] = dat[i + count];
+    }
+    for ( int u = 0; u < 7; u++)         // u - vertical
+    {
+      uint8_t count_dot = 0;
+      for (int r = 0; r < 16; r++)
+      {
+        dotArrey[r] = 0;
+      }
+      // Serial.println();
+      for (int n = 0; n < 20; n++)           // n - #char
+      {
+
+        for ( int m = 0; m < 5; m++)        // m - horizontal
+        {
+          // dotArrey[count_dot>>3] |= (pgm_read_byte(font+line[n]*5+m))&(1<<u);
+          if ((pgm_read_byte(font + line[n] * 5 + m)) & (1 << u)) dotArrey[15 - (count_dot >> 3)] |= 1 << (7 - count_dot & 7);
+          // else Serial.print(" ");
+          count_dot++;
+        }
+      }
+
+      printLine(dotArrey);
+
+    }
+    newLine();
+    count += 20;
+  }
+
+}
+void setup() {
+  // put your setup code here, to run once:
+  uint8_t preMes[4][26] = {{1, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0},
+    {0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0}, \
+    {1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1}, \
+    {1, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1}
+  };
+
+
+
+
+
+  pinMode(STEP, OUTPUT);
+  pinMode(DIR, OUTPUT);
+  pinMode(STB1, OUTPUT);
+  pinMode(STB2, OUTPUT);
+  digitalWrite(STB1, HIGH);
+  digitalWrite(STB2, HIGH);
+  pinMode(LATCH, OUTPUT);
+
+
+  pinMode(DI, OUTPUT);
+  // pinMode(DO,INPUT);
+  pinMode(CLK, OUTPUT);
+  Serial.begin(19200);
+  digitalWrite(DIR, HIGH);
+  digitalWrite(STEP, LOW);
+  digitalWrite(DI, LOW);
+  for (int i = 0; i < 50; i++) {
+    digitalWrite(STEP, HIGH);
+    delay(1);
+    digitalWrite(STEP, LOW);
+    delay(1);
+  }
+
+
+
+   printChars(liter,32);
+ // Serial.println("Р В Р’В Р РЋРІР‚в„ўР В Р’В Р вЂ™Р’В±Р В Р’В Р В РІР‚В Р В Р’В Р РЋРІР‚вЂњР В Р’В Р СћРІР‚пїЅ");         //
+  for (int i = 0; i < 50; i++) {
+    digitalWrite(STEP, HIGH);
+    delay(1);
+    digitalWrite(STEP, LOW);
+    delay(1);
+  }  //digitalWrite(LATCH,HIGH);
+
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+
+}
+
+
+
+
+
